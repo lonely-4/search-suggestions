@@ -23,3 +23,6 @@ jobs:
 
             - run: deno install
             - run: deno task test
+            - run: npm install
+            - run: npm run build
+            - run: git diff --exit-code api/index.js
