@@ -9,9 +9,11 @@
 		"useTabs": true,
 		"semiColons": false,
 		"singleQuote": true,
-		"lineWidth": 144
+		"lineWidth": 144,
+		"exclude": ["api/index.js"]
 	},
 	"lint": {
+		"exclude": ["api/index.js"],
 		"rules": {
 			"tags": ["recommended"]
 		}

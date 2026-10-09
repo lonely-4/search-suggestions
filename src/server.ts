@@ -1,4 +1,4 @@
-import { responseAsHttp } from '../src/http.ts'
+import { responseAsHttp } from './http.ts'
 
 const cors = {
 	'Access-Control-Allow-Origin': '*',

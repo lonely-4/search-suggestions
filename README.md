@@ -127,7 +127,7 @@ wrangler deploy
 
 ## Deploy on Vercel
 
-The HTTP API is a Node.js Function (`api/index.ts`). `vercel.ts` skips the static build and rewrites `/` to that function, so `GET /?q=&with=&l=` matches the Cloudflare route. WebSockets stay on the Cloudflare Worker.
+The HTTP API is a bundled Node.js Function (`api/index.js`, built from `src/server.ts`). Vercel does not resolve the Deno `.ts` imports, so `npm run build` inlines them into that file. `vercel.ts` rewrites `/` to the function. WebSockets stay on the Cloudflare Worker.
 
 ```bash
 npm install

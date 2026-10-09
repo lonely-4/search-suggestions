@@ -1,5 +1,5 @@
 import { expect } from '@std/expect'
-import app from '../api/index.ts'
+import app from '../src/server.ts'
 
 Deno.test('vercel function returns an empty list when q is missing', async () => {
 	const response = await app.fetch(new Request('https://suggestions.example/'))

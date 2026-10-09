@@ -1,6 +1,6 @@
 import { routes, type VercelConfig } from '@vercel/config/v1'
 
-// Zero-config Node.js Function in /api. The public API stays at `/`.
+// Bundled Node.js Function at api/index.js. The public API stays at `/`.
 export const config: VercelConfig = {
 	framework: null,
 	fluid: true,
