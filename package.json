@@ -1,0 +1,12 @@
+{
+	"name": "suggestions",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "npx vercel@63.1.0 dev",
+		"deploy": "npx vercel@63.1.0 deploy --prod"
+	},
+	"devDependencies": {
+		"@vercel/config": "0.12.0"
+	}
+}
