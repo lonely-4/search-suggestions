@@ -20,9 +20,10 @@ type GoogleAPI = [
 ]
 
 export async function google(q: string, lang: string): Promise<Suggestions> {
-	const base = 'https://www.google.com/complete/search?q=%q&hl=%l&client=gws-wiz'
-	const url = base.replace('%q', q).replace('%l', lang)
-	let text = (await fetchProviderText(url)) ?? ''
+	const hl = encodeURIComponent(lang)
+	const gl = lang === 'zh-CN' ? '&gl=cn' : ''
+	const url = `https://www.google.com/complete/search?q=${encodeURIComponent(q)}&hl=${hl}&client=gws-wiz${gl}`
+	let text = (await fetchProviderText(url, lang)) ?? ''
 
 	try {
 		text = text.replace('window.google.ac.h(', '')
