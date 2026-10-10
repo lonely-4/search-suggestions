@@ -1,22 +1,53 @@
 import handler from './index.ts'
+import spec from '../openapi.json' with { type: 'json' }
+import home from './home.html' with { type: 'text' }
+import docs from './docs.html' with { type: 'text' }
 import type {} from '@cloudflare/workers-types'
+
+const jsonHeaders = {
+	'Content-Type': 'application/json; charset=utf-8',
+	'Access-Control-Allow-Origin': '*',
+}
+
+const htmlHeaders = {
+	'Content-Type': 'text/html; charset=utf-8',
+}
 
 export default {
 	async fetch(request: Request) {
 		const upgradeHeader = request.headers.get('Upgrade') === 'websocket'
+		const url = new URL(request.url)
 
-		// When using GET method
 		if (request.method === 'GET' && !upgradeHeader) {
+			if (url.pathname === '/openapi.json') {
+				return new Response(JSON.stringify(spec), { headers: jsonHeaders })
+			}
+
+			if (url.pathname === '/docs' || url.pathname === '/docs/') {
+				return new Response(docs, { headers: htmlHeaders })
+			}
+
+			if (url.pathname === '/' && !url.searchParams.has('q') && wantsHtml(request)) {
+				return new Response(home, { headers: htmlHeaders })
+			}
+
+			if (url.pathname !== '/') {
+				return new Response('', { status: 404 })
+			}
+
 			return await responseAsHttp(request)
 		}
 
-		// When using WS method
-		if (request.method === 'WS' || (request.method === 'GET' && upgradeHeader)) {
+		if ((request.method === 'WS' || (request.method === 'GET' && upgradeHeader)) && url.pathname === '/') {
 			return createWebsocket()
 		}
 
 		return new Response('', { status: 405 })
 	},
+}
+
+function wantsHtml(request: Request): boolean {
+	return (request.headers.get('Accept') ?? '').includes('text/html')
 }
 
 async function responseAsHttp(request: Request): Promise<Response> {
@@ -29,12 +60,7 @@ async function responseAsHttp(request: Request): Promise<Response> {
 		with: params.get('with') ?? 'duckduckgo',
 	})
 
-	return new Response(JSON.stringify(result), {
-		headers: {
-			'Content-Type': 'application/json',
-			'Access-Control-Allow-Origin': '*',
-		},
-	})
+	return new Response(JSON.stringify(result), { headers: jsonHeaders })
 }
 
 function createWebsocket() {
@@ -84,7 +110,7 @@ function createWebsocket() {
 }
 
 function debounce(callback: (...args: unknown[]) => unknown, delay: number) {
-	let timer = 0
+	let timer: ReturnType<typeof setTimeout> | undefined
 
 	return function (...args: unknown[]) {
 		clearTimeout(timer)

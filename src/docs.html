@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light dark" />
+		<title>Search Suggestions API</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.29.0/swagger-ui.css" />
+		<style>
+		:root {
+			color-scheme: light dark;
+		}
+
+		html,
+		body {
+			margin: 0;
+			background: #fff;
+		}
+
+		.topbar {
+			display: none;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			html,
+			body {
+				background: #09090b;
+			}
+
+			.swagger-ui,
+			.swagger-ui .scheme-container {
+				background: #09090b;
+				color: #fafafa;
+			}
+
+			.swagger-ui .info .title,
+			.swagger-ui .info li,
+			.swagger-ui .info p,
+			.swagger-ui .info table,
+			.swagger-ui .opblock-tag,
+			.swagger-ui .opblock .opblock-summary-path,
+			.swagger-ui .opblock .opblock-summary-description,
+			.swagger-ui .opblock-description-wrapper p,
+			.swagger-ui .parameter__name,
+			.swagger-ui .parameter__type,
+			.swagger-ui .response-col_status,
+			.swagger-ui .response-col_description,
+			.swagger-ui table thead tr td,
+			.swagger-ui table thead tr th,
+			.swagger-ui .tab li,
+			.swagger-ui label,
+			.swagger-ui .model-title,
+			.swagger-ui .model,
+			.swagger-ui section.models h4,
+			.swagger-ui .prop-type,
+			.swagger-ui .prop-format {
+				color: #fafafa;
+			}
+
+			.swagger-ui .opblock-tag,
+			.swagger-ui section.models,
+			.swagger-ui .model-container,
+			.swagger-ui .scheme-container {
+				border-color: #27272a;
+			}
+
+			.swagger-ui .opblock {
+				background: #18181b;
+				border-color: #27272a;
+			}
+
+			.swagger-ui .opblock .opblock-section-header,
+			.swagger-ui .opblock .opblock-summary {
+				background: transparent;
+				border-color: #27272a;
+			}
+
+			.swagger-ui input,
+			.swagger-ui textarea,
+			.swagger-ui select {
+				background: #09090b;
+				color: #fafafa;
+				border-color: #3f3f46;
+			}
+
+			.swagger-ui .btn {
+				color: #fafafa;
+				border-color: #3f3f46;
+			}
+
+			.swagger-ui .markdown code,
+			.swagger-ui .renderedMarkdown code {
+				color: #e4e4e7;
+				background: #27272a;
+			}
+		}
+		</style>
+	</head>
+	<body>
+		<div id="swagger-ui"></div>
+		<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.29.0/swagger-ui-bundle.js"></script>
+		<script>
+		window.ui = SwaggerUIBundle({
+			url: '/openapi.json',
+			dom_id: '#swagger-ui',
+			deepLinking: true,
+			presets: [SwaggerUIBundle.presets.apis],
+			layout: 'BaseLayout',
+		})
+		</script>
+	</body>
+</html>
