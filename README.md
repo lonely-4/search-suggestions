@@ -11,6 +11,8 @@ Here's the list of available search providers:
 Yahoo, Qwant, and Brave are not available. They cannot return Simplified Chinese suggestions: Yahoo has no mainland suggest endpoint, Qwant has
 no Chinese locale, and Brave ignores the language parameter.
 
+Open `/` in a browser to preview suggestions. The API reference is at `/docs` (`/openapi.json`).
+
 Try it here: [https://search-sug.lonely.land/](https://search-sug.lonely.land/)
 
 ## How to use
@@ -127,7 +129,8 @@ wrangler deploy
 
 ## Deploy on Vercel
 
-The HTTP API is a bundled Node.js Function (`api/index.js`, built from `src/server.ts`). Vercel does not resolve the Deno `.ts` imports, so `npm run build` inlines them into that file. `vercel.ts` rewrites `/` to the function. WebSockets stay on the Cloudflare Worker.
+The HTTP API is a bundled Node.js Function (`api/index.js`, built from `src/server.ts`). Vercel does not resolve the Deno `.ts` imports, so
+`npm run build` inlines them into that file. `vercel.ts` rewrites `/` to the function. WebSockets stay on the Cloudflare Worker.
 
 ```bash
 npm install
@@ -136,4 +139,3 @@ npm run dev
 
 npm run deploy
 ```
-

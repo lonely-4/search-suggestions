@@ -1,0 +1,102 @@
+{
+	"openapi": "3.0.3",
+	"info": {
+		"title": "Search Suggestions API",
+		"version": "1.0.0",
+		"description": "Search suggestions from Google, Bing, DuckDuckGo, and Baidu. Pass l=zh-CN (also zh, zh-Hans, zh_CN) for Simplified Chinese. Yahoo, Qwant, and Brave are not available."
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	],
+	"paths": {
+		"/": {
+			"get": {
+				"operationId": "suggest",
+				"summary": "Get search suggestions",
+				"parameters": [
+					{
+						"name": "q",
+						"in": "query",
+						"required": true,
+						"description": "Search query.",
+						"schema": {
+							"type": "string",
+							"example": "北京"
+						}
+					},
+					{
+						"name": "l",
+						"in": "query",
+						"required": false,
+						"description": "Locale. zh, zh-CN, zh-Hans, and zh_CN all mean Simplified Chinese.",
+						"schema": {
+							"type": "string",
+							"default": "en",
+							"example": "zh-CN"
+						}
+					},
+					{
+						"name": "with",
+						"in": "query",
+						"required": false,
+						"description": "Suggestion engine. ddg is an alias of duckduckgo.",
+						"schema": {
+							"type": "string",
+							"default": "duckduckgo",
+							"enum": ["google", "bing", "duckduckgo", "ddg", "baidu"]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Suggestion list. Empty when q is missing.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Suggestions"
+								},
+								"example": [
+									{
+										"text": "北京天气",
+										"desc": "中国的首都",
+										"image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:example&s=10"
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"Suggestion": {
+				"type": "object",
+				"required": ["text"],
+				"properties": {
+					"text": {
+						"type": "string"
+					},
+					"desc": {
+						"type": "string",
+						"description": "Present when the engine returns a presentation."
+					},
+					"image": {
+						"type": "string",
+						"format": "uri",
+						"description": "Present when the engine returns a presentation."
+					}
+				}
+			},
+			"Suggestions": {
+				"type": "array",
+				"items": {
+					"$ref": "#/components/schemas/Suggestion"
+				}
+			}
+		}
+	}
+}

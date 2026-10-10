@@ -67,7 +67,7 @@ function createWebsocket() {
 }
 
 function debounce(callback: (...args: unknown[]) => unknown, delay: number) {
-	let timer = 0
+	let timer: ReturnType<typeof setTimeout> | undefined
 
 	return function (...args: unknown[]) {
 		clearTimeout(timer)

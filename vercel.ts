@@ -6,5 +6,10 @@ export const config: VercelConfig = {
 	fluid: true,
 	buildCommand: '',
 	installCommand: 'npm install',
-	rewrites: [routes.rewrite('/', '/api')],
+	rewrites: [
+		routes.rewrite('/', '/api'),
+		routes.rewrite('/docs', '/api/docs'),
+		routes.rewrite('/docs/', '/api/docs/'),
+		routes.rewrite('/openapi.json', '/api/openapi.json'),
+	],
 }

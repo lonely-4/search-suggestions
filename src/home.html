@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light dark" />
+		<title>搜索建议</title>
+		<style>
+		:root {
+			color-scheme: light dark;
+			--background: 0 0% 100%;
+			--foreground: 240 10% 3.9%;
+			--muted: 240 4.8% 95.9%;
+			--muted-foreground: 240 3.8% 46.1%;
+			--border: 240 5.9% 90%;
+			--ring: 240 10% 3.9%;
+			--radius: 0.5rem;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--background: 240 10% 3.9%;
+				--foreground: 0 0% 98%;
+				--muted: 240 3.7% 15.9%;
+				--muted-foreground: 240 5% 64.9%;
+				--border: 240 3.7% 15.9%;
+				--ring: 240 4.9% 83.9%;
+			}
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			background: hsl(var(--background));
+			color: hsl(var(--foreground));
+			font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		main {
+			width: min(32rem, calc(100% - 2rem));
+			margin: 0 auto;
+			padding: 18vh 0 4rem;
+		}
+
+		header {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			margin-bottom: 1rem;
+		}
+
+		h1 {
+			margin: 0;
+			font-size: 0.875rem;
+			font-weight: 500;
+			letter-spacing: -0.01em;
+		}
+
+		a {
+			color: hsl(var(--muted-foreground));
+			font-size: 0.75rem;
+			text-decoration: none;
+		}
+
+		a:hover {
+			color: hsl(var(--foreground));
+		}
+
+		.controls {
+			display: flex;
+			gap: 0.5rem;
+			margin-bottom: 0.5rem;
+		}
+
+		select,
+		input {
+			height: 2.5rem;
+			border: 1px solid hsl(var(--border));
+			border-radius: var(--radius);
+			background: transparent;
+			color: inherit;
+			font: inherit;
+			font-size: 0.875rem;
+		}
+
+		select {
+			padding: 0 0.5rem;
+		}
+
+		input {
+			width: 100%;
+			padding: 0 0.75rem;
+			outline: none;
+		}
+
+		input::placeholder {
+			color: hsl(var(--muted-foreground));
+		}
+
+		input:focus-visible,
+		select:focus-visible {
+			outline: none;
+			box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+		}
+
+		ul {
+			list-style: none;
+			margin: 0.75rem 0 0;
+			padding: 0;
+			border: 1px solid hsl(var(--border));
+			border-radius: var(--radius);
+			overflow: hidden;
+		}
+
+		ul:empty {
+			display: none;
+		}
+
+		li {
+			display: flex;
+			gap: 0.75rem;
+			align-items: center;
+			width: 100%;
+			padding: 0.65rem 0.75rem;
+			border: 0;
+			border-top: 1px solid hsl(var(--border));
+			background: transparent;
+			color: inherit;
+			font: inherit;
+			text-align: left;
+			cursor: pointer;
+		}
+
+		li:first-child {
+			border-top: 0;
+		}
+
+		li:hover {
+			background: hsl(var(--muted));
+		}
+
+		img {
+			width: 2rem;
+			height: 2rem;
+			flex: none;
+			border-radius: calc(var(--radius) - 2px);
+			object-fit: cover;
+			background: hsl(var(--muted));
+		}
+
+		.text {
+			font-size: 0.875rem;
+			line-height: 1.25rem;
+		}
+
+		.desc {
+			margin-top: 0.125rem;
+			color: hsl(var(--muted-foreground));
+			font-size: 0.75rem;
+			line-height: 1rem;
+		}
+
+		#empty {
+			margin: 0.75rem 0 0;
+			color: hsl(var(--muted-foreground));
+			font-size: 0.875rem;
+		}
+		</style>
+	</head>
+	<body>
+		<main>
+			<header>
+				<h1>搜索建议</h1>
+				<a href="/docs">Docs</a>
+			</header>
+			<form>
+				<div class="controls">
+					<select name="with" aria-label="引擎">
+						<option value="google">Google</option>
+						<option value="bing">Bing</option>
+						<option value="duckduckgo">DuckDuckGo</option>
+						<option value="baidu">Baidu</option>
+					</select>
+					<select name="l" aria-label="语言">
+						<option value="zh-CN" selected>简体中文</option>
+						<option value="en">English</option>
+						<option value="fr">Français</option>
+						<option value="">自动</option>
+					</select>
+				</div>
+				<input id="q" name="q" type="search" placeholder="搜索" autocomplete="off" autofocus />
+				<ul id="list"></ul>
+				<p id="empty" hidden>没有建议</p>
+			</form>
+		</main>
+		<script>
+		const form = document.querySelector('form')
+		const input = document.querySelector('#q')
+		const list = document.querySelector('#list')
+		const empty = document.querySelector('#empty')
+		let timer = 0
+		let seq = 0
+
+		async function search() {
+			const query = input.value.trim()
+			const id = ++seq
+			if (!query) {
+				list.replaceChildren()
+				empty.hidden = true
+				return
+			}
+			const params = new URLSearchParams(new FormData(form))
+			try {
+				const response = await fetch('/?' + params, { headers: { Accept: 'application/json' } })
+				if (id !== seq) return
+				const data = await response.json()
+				list.replaceChildren()
+				if (!Array.isArray(data) || data.length === 0) {
+					empty.hidden = false
+					return
+				}
+				empty.hidden = true
+				for (const item of data) {
+					const row = document.createElement('li')
+					if (item.image) {
+						const img = document.createElement('img')
+						img.alt = ''
+						img.src = item.image
+						row.append(img)
+					}
+					const body = document.createElement('div')
+					const text = document.createElement('div')
+					text.className = 'text'
+					text.textContent = item.text ?? ''
+					body.append(text)
+					if (item.desc) {
+						const desc = document.createElement('div')
+						desc.className = 'desc'
+						desc.textContent = item.desc
+						body.append(desc)
+					}
+					row.append(body)
+					row.addEventListener('click', () => {
+						input.value = item.text ?? ''
+						search()
+					})
+					list.append(row)
+				}
+			} catch (_) {
+				if (id !== seq) return
+				list.replaceChildren()
+				empty.hidden = false
+			}
+		}
+
+		input.addEventListener('input', () => {
+			clearTimeout(timer)
+			timer = setTimeout(search, 160)
+		})
+		form.addEventListener('change', search)
+		form.addEventListener('submit', (event) => {
+			event.preventDefault()
+			search()
+		})
+		</script>
+	</body>
+</html>
