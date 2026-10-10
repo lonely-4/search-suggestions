@@ -4,7 +4,7 @@ import app from '../src/server.ts'
 Deno.test('vercel function returns an empty list when q is missing', async () => {
 	const response = await app.fetch(new Request('https://suggestions.example/'))
 	expect(response.status).toBe(200)
-	expect(response.headers.get('content-type')).toBe('application/json')
+	expect(response.headers.get('content-type')).toContain('application/json')
 	expect(response.headers.get('access-control-allow-origin')).toBe('*')
 	expect(await response.json()).toEqual([])
 })

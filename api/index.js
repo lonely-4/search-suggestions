@@ -129,25 +129,547 @@ async function fetchProviderText(url, lang = "") {
   }
 }
 
+// openapi.json
+var openapi_default = {
+  openapi: "3.0.3",
+  info: {
+    title: "Search Suggestions API",
+    version: "1.0.0",
+    description: "Search suggestions from Google, Bing, DuckDuckGo, and Baidu. Pass l=zh-CN (also zh, zh-Hans, zh_CN) for Simplified Chinese. Yahoo, Qwant, and Brave are not available."
+  },
+  servers: [
+    {
+      url: "/"
+    }
+  ],
+  paths: {
+    "/": {
+      get: {
+        operationId: "suggest",
+        summary: "Get search suggestions",
+        parameters: [
+          {
+            name: "q",
+            in: "query",
+            required: true,
+            description: "Search query.",
+            schema: {
+              type: "string",
+              example: "\u5317\u4EAC"
+            }
+          },
+          {
+            name: "l",
+            in: "query",
+            required: false,
+            description: "Locale. zh, zh-CN, zh-Hans, and zh_CN all mean Simplified Chinese.",
+            schema: {
+              type: "string",
+              default: "en",
+              example: "zh-CN"
+            }
+          },
+          {
+            name: "with",
+            in: "query",
+            required: false,
+            description: "Suggestion engine. ddg is an alias of duckduckgo.",
+            schema: {
+              type: "string",
+              default: "duckduckgo",
+              enum: ["google", "bing", "duckduckgo", "ddg", "baidu"]
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: "Suggestion list. Empty when q is missing.",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Suggestions"
+                },
+                example: [
+                  {
+                    text: "\u5317\u4EAC\u5929\u6C14",
+                    desc: "\u4E2D\u56FD\u7684\u9996\u90FD",
+                    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:example&s=10"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  components: {
+    schemas: {
+      Suggestion: {
+        type: "object",
+        required: ["text"],
+        properties: {
+          text: {
+            type: "string"
+          },
+          desc: {
+            type: "string",
+            description: "Present when the engine returns a presentation."
+          },
+          image: {
+            type: "string",
+            format: "uri",
+            description: "Present when the engine returns a presentation."
+          }
+        }
+      },
+      Suggestions: {
+        type: "array",
+        items: {
+          $ref: "#/components/schemas/Suggestion"
+        }
+      }
+    }
+  }
+};
+
+// src/home.html
+var home_default = `<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light dark" />
+		<title>\u641C\u7D22\u5EFA\u8BAE</title>
+		<style>
+		:root {
+			color-scheme: light dark;
+			--background: 0 0% 100%;
+			--foreground: 240 10% 3.9%;
+			--muted: 240 4.8% 95.9%;
+			--muted-foreground: 240 3.8% 46.1%;
+			--border: 240 5.9% 90%;
+			--ring: 240 10% 3.9%;
+			--radius: 0.5rem;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--background: 240 10% 3.9%;
+				--foreground: 0 0% 98%;
+				--muted: 240 3.7% 15.9%;
+				--muted-foreground: 240 5% 64.9%;
+				--border: 240 3.7% 15.9%;
+				--ring: 240 4.9% 83.9%;
+			}
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			background: hsl(var(--background));
+			color: hsl(var(--foreground));
+			font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		main {
+			width: min(32rem, calc(100% - 2rem));
+			margin: 0 auto;
+			padding: 18vh 0 4rem;
+		}
+
+		header {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			margin-bottom: 1rem;
+		}
+
+		h1 {
+			margin: 0;
+			font-size: 0.875rem;
+			font-weight: 500;
+			letter-spacing: -0.01em;
+		}
+
+		a {
+			color: hsl(var(--muted-foreground));
+			font-size: 0.75rem;
+			text-decoration: none;
+		}
+
+		a:hover {
+			color: hsl(var(--foreground));
+		}
+
+		.controls {
+			display: flex;
+			gap: 0.5rem;
+			margin-bottom: 0.5rem;
+		}
+
+		select,
+		input {
+			height: 2.5rem;
+			border: 1px solid hsl(var(--border));
+			border-radius: var(--radius);
+			background: transparent;
+			color: inherit;
+			font: inherit;
+			font-size: 0.875rem;
+		}
+
+		select {
+			padding: 0 0.5rem;
+		}
+
+		input {
+			width: 100%;
+			padding: 0 0.75rem;
+			outline: none;
+		}
+
+		input::placeholder {
+			color: hsl(var(--muted-foreground));
+		}
+
+		input:focus-visible,
+		select:focus-visible {
+			outline: none;
+			box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+		}
+
+		ul {
+			list-style: none;
+			margin: 0.75rem 0 0;
+			padding: 0;
+			border: 1px solid hsl(var(--border));
+			border-radius: var(--radius);
+			overflow: hidden;
+		}
+
+		ul:empty {
+			display: none;
+		}
+
+		li {
+			display: flex;
+			gap: 0.75rem;
+			align-items: center;
+			width: 100%;
+			padding: 0.65rem 0.75rem;
+			border: 0;
+			border-top: 1px solid hsl(var(--border));
+			background: transparent;
+			color: inherit;
+			font: inherit;
+			text-align: left;
+			cursor: pointer;
+		}
+
+		li:first-child {
+			border-top: 0;
+		}
+
+		li:hover {
+			background: hsl(var(--muted));
+		}
+
+		img {
+			width: 2rem;
+			height: 2rem;
+			flex: none;
+			border-radius: calc(var(--radius) - 2px);
+			object-fit: cover;
+			background: hsl(var(--muted));
+		}
+
+		.text {
+			font-size: 0.875rem;
+			line-height: 1.25rem;
+		}
+
+		.desc {
+			margin-top: 0.125rem;
+			color: hsl(var(--muted-foreground));
+			font-size: 0.75rem;
+			line-height: 1rem;
+		}
+
+		#empty {
+			margin: 0.75rem 0 0;
+			color: hsl(var(--muted-foreground));
+			font-size: 0.875rem;
+		}
+		</style>
+	</head>
+	<body>
+		<main>
+			<header>
+				<h1>\u641C\u7D22\u5EFA\u8BAE</h1>
+				<a href="/docs">Docs</a>
+			</header>
+			<form>
+				<div class="controls">
+					<select name="with" aria-label="\u5F15\u64CE">
+						<option value="google">Google</option>
+						<option value="bing">Bing</option>
+						<option value="duckduckgo">DuckDuckGo</option>
+						<option value="baidu">Baidu</option>
+					</select>
+					<select name="l" aria-label="\u8BED\u8A00">
+						<option value="zh-CN" selected>\u7B80\u4F53\u4E2D\u6587</option>
+						<option value="en">English</option>
+						<option value="fr">Fran\xE7ais</option>
+						<option value="">\u81EA\u52A8</option>
+					</select>
+				</div>
+				<input id="q" name="q" type="search" placeholder="\u641C\u7D22" autocomplete="off" autofocus />
+				<ul id="list"></ul>
+				<p id="empty" hidden>\u6CA1\u6709\u5EFA\u8BAE</p>
+			</form>
+		</main>
+		<script>
+		const form = document.querySelector('form')
+		const input = document.querySelector('#q')
+		const list = document.querySelector('#list')
+		const empty = document.querySelector('#empty')
+		let timer = 0
+		let seq = 0
+
+		async function search() {
+			const query = input.value.trim()
+			const id = ++seq
+			if (!query) {
+				list.replaceChildren()
+				empty.hidden = true
+				return
+			}
+			const params = new URLSearchParams(new FormData(form))
+			try {
+				const response = await fetch('/?' + params, { headers: { Accept: 'application/json' } })
+				if (id !== seq) return
+				const data = await response.json()
+				list.replaceChildren()
+				if (!Array.isArray(data) || data.length === 0) {
+					empty.hidden = false
+					return
+				}
+				empty.hidden = true
+				for (const item of data) {
+					const row = document.createElement('li')
+					if (item.image) {
+						const img = document.createElement('img')
+						img.alt = ''
+						img.src = item.image
+						row.append(img)
+					}
+					const body = document.createElement('div')
+					const text = document.createElement('div')
+					text.className = 'text'
+					text.textContent = item.text ?? ''
+					body.append(text)
+					if (item.desc) {
+						const desc = document.createElement('div')
+						desc.className = 'desc'
+						desc.textContent = item.desc
+						body.append(desc)
+					}
+					row.append(body)
+					row.addEventListener('click', () => {
+						input.value = item.text ?? ''
+						search()
+					})
+					list.append(row)
+				}
+			} catch (_) {
+				if (id !== seq) return
+				list.replaceChildren()
+				empty.hidden = false
+			}
+		}
+
+		input.addEventListener('input', () => {
+			clearTimeout(timer)
+			timer = setTimeout(search, 160)
+		})
+		form.addEventListener('change', search)
+		form.addEventListener('submit', (event) => {
+			event.preventDefault()
+			search()
+		})
+		</script>
+	</body>
+</html>
+`;
+
+// src/docs.html
+var docs_default = `<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light dark" />
+		<title>Search Suggestions API</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.29.0/swagger-ui.css" />
+		<style>
+		:root {
+			color-scheme: light dark;
+		}
+
+		html,
+		body {
+			margin: 0;
+			background: #fff;
+		}
+
+		.topbar {
+			display: none;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			html,
+			body {
+				background: #09090b;
+			}
+
+			.swagger-ui,
+			.swagger-ui .scheme-container {
+				background: #09090b;
+				color: #fafafa;
+			}
+
+			.swagger-ui .info .title,
+			.swagger-ui .info li,
+			.swagger-ui .info p,
+			.swagger-ui .info table,
+			.swagger-ui .opblock-tag,
+			.swagger-ui .opblock .opblock-summary-path,
+			.swagger-ui .opblock .opblock-summary-description,
+			.swagger-ui .opblock-description-wrapper p,
+			.swagger-ui .parameter__name,
+			.swagger-ui .parameter__type,
+			.swagger-ui .response-col_status,
+			.swagger-ui .response-col_description,
+			.swagger-ui table thead tr td,
+			.swagger-ui table thead tr th,
+			.swagger-ui .tab li,
+			.swagger-ui label,
+			.swagger-ui .model-title,
+			.swagger-ui .model,
+			.swagger-ui section.models h4,
+			.swagger-ui .prop-type,
+			.swagger-ui .prop-format {
+				color: #fafafa;
+			}
+
+			.swagger-ui .opblock-tag,
+			.swagger-ui section.models,
+			.swagger-ui .model-container,
+			.swagger-ui .scheme-container {
+				border-color: #27272a;
+			}
+
+			.swagger-ui .opblock {
+				background: #18181b;
+				border-color: #27272a;
+			}
+
+			.swagger-ui .opblock .opblock-section-header,
+			.swagger-ui .opblock .opblock-summary {
+				background: transparent;
+				border-color: #27272a;
+			}
+
+			.swagger-ui input,
+			.swagger-ui textarea,
+			.swagger-ui select {
+				background: #09090b;
+				color: #fafafa;
+				border-color: #3f3f46;
+			}
+
+			.swagger-ui .btn {
+				color: #fafafa;
+				border-color: #3f3f46;
+			}
+
+			.swagger-ui .markdown code,
+			.swagger-ui .renderedMarkdown code {
+				color: #e4e4e7;
+				background: #27272a;
+			}
+		}
+		</style>
+	</head>
+	<body>
+		<div id="swagger-ui"></div>
+		<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.29.0/swagger-ui-bundle.js"></script>
+		<script>
+		window.ui = SwaggerUIBundle({
+			url: '/openapi.json',
+			dom_id: '#swagger-ui',
+			deepLinking: true,
+			presets: [SwaggerUIBundle.presets.apis],
+			layout: 'BaseLayout',
+		})
+		</script>
+	</body>
+</html>
+`;
+
 // src/http.ts
+var cors = {
+  "Access-Control-Allow-Origin": "*"
+};
+var jsonHeaders = {
+  "Content-Type": "application/json; charset=utf-8",
+  ...cors
+};
+var htmlHeaders = {
+  "Content-Type": "text/html; charset=utf-8",
+  ...cors
+};
 async function responseAsHttp(request) {
   const url = new URL(request.url);
-  const params = new URLSearchParams(url.searchParams);
+  const page = staticPage(url, request);
+  if (page) return page;
+  if (!isSuggestPath(url.pathname)) {
+    return new Response("", { status: 404, headers: cors });
+  }
+  const params = url.searchParams;
   const result = await handler({
     q: params.get("q") ?? "",
     lang: params.get("l") ?? "en",
     with: params.get("with") ?? "duckduckgo"
   });
-  return new Response(JSON.stringify(result), {
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*"
-    }
-  });
+  return new Response(JSON.stringify(result), { headers: jsonHeaders });
+}
+function staticPage(url, request) {
+  if (url.pathname === "/openapi.json" || url.pathname === "/api/openapi.json") {
+    return new Response(JSON.stringify(openapi_default), { headers: jsonHeaders });
+  }
+  if (url.pathname === "/docs" || url.pathname === "/docs/" || url.pathname === "/api/docs" || url.pathname === "/api/docs/") {
+    return new Response(docs_default, { headers: htmlHeaders });
+  }
+  if (isSuggestPath(url.pathname) && !url.searchParams.has("q") && wantsHtml(request)) {
+    return new Response(home_default, { headers: htmlHeaders });
+  }
+}
+function isSuggestPath(pathname) {
+  return pathname === "/" || pathname === "/api" || pathname === "/api/";
+}
+function wantsHtml(request) {
+  return (request.headers.get("Accept") ?? "").includes("text/html");
 }
 
 // src/server.ts
-var cors = {
+var cors2 = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type"
@@ -157,14 +679,14 @@ var server_default = {
     if (request.headers.get("Upgrade") === "websocket") {
       return Response.json(
         { error: "WebSocket suggestions are served by the Cloudflare deployment" },
-        { status: 501, headers: cors }
+        { status: 501, headers: cors2 }
       );
     }
     if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: cors });
+      return new Response(null, { status: 204, headers: cors2 });
     }
     if (request.method !== "GET") {
-      return new Response("", { status: 405, headers: cors });
+      return new Response("", { status: 405, headers: cors2 });
     }
     return responseAsHttp(request);
   }
