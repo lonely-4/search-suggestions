@@ -11,7 +11,7 @@ Here's the list of available search providers:
 Yahoo, Qwant, and Brave are not available. They cannot return Simplified Chinese suggestions: Yahoo has no mainland suggest endpoint, Qwant has
 no Chinese locale, and Brave ignores the language parameter.
 
-Try it here: https://suggestions.victr.me/
+Try it here: [https://suggestions.victr.me/](https://search-sug.lonely.land/)
 
 ## How to use
 
